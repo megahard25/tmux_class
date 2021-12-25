@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<head>
+<meta charset="UTF-8"> 
+<title>pyxterm</title>
+<!--
+  pyxterm: Basic Python socket implementation for term.js
+
+  Example template
+  Modified by: R. Saravanan <sarava@sarava.net> 2014
+  Original Copyright (c) 2012-2013, Christopher Jeffrey (MIT License)
+-->
+<script>
+function openNav() {
+    document.getElementById("mySidenav").style.width = "16%";
+    document.getElementById("main").style.marginRight = "250px";
+    document.body.style.backgroundColor = "rgba(0,0,0,0.4)";
+}
+
+function closeNav() {
+    document.getElementById("mySidenav").style.width = "0";
+    document.getElementById("main").style.marginRight= "0";
+    document.body.style.backgroundColor = "white";
+}
+</script>
+<style>
+  html {
+    background: #555;
+  }
+
+  h1 {
+    margin-bottom: 20px;
+    font: 20px/1.5 sans-serif;
+  }
+
+  .sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: rgb(255, 255, 255);
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+}
+
+.sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s
+}
+
+.sidenav a:hover, .offcanvas a:focus{
+    color: #f1f1f1;
+}
+
+  .sidenav .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+</style>
+<script src="{{ xstatic('termjs', 'term.js') }}" charset="utf-8"></script>
+<script src="{{ static('terminado.js') }}" charset="utf-8"></script>
+<script>
+
+var rows, cols
+window.onload = function() {
+	var termRowHeight = 0.0 + 1.00*document.getElementById("dummy-screen").offsetHeight / 25;
+    var termColWidth = 0.0 + (1.2*document.getElementById("dummy-screen-rows").offsetWidth / 80);
+
+	rows = Math.max(2, Math.floor(window.innerHeight/termRowHeight)-1);
+    cols = Math.max(3, Math.floor(window.innerWidth/termColWidth)-1);
+    console.log("resize:", termRowHeight, termColWidth, window.innerHeight,
+                                        window.innerWidth, rows, cols);
+    
+};
+
+
+function WindowTerminal(ws_url_path) {
+    // Test size: 25x80
+    document.getElementById("dummy-screen").setAttribute("style", "display: none");
+
+    var protocol = (window.location.protocol.indexOf("https") === 0) ? "wss" : "ws";
+    var ws_url = protocol+"://"+window.location.host+ ws_url_path;
+    
+    function calculate_size(element) {
+        var rows = Math.max(2, Math.floor(element.innerHeight/termRowHeight)-1);
+        var cols = Math.max(3, Math.floor(element.innerWidth/termColWidth)-1);
+        console.log("resize:", termRowHeight, termColWidth, element.innerHeight,
+                                        element.innerWidth, rows, cols);
+        return {rows: rows, cols: cols};
+    }
+
+    var terminal = make_terminal(document.body, {rows: rows, cols: cols}, ws_url);
+	
+};
+</script>
+
+<div id="mySidenav" class="sidenav">
+	<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+	<script>
+		var keys = '{{keys}}'.split(';');
+		var values = '{{values}}'.split(';');
+		for (var i = 1; i < keys.length; i = i + 2){
+			var value = values[i].slice(0, values[i].length - 4)
+			var key = keys[i].slice(0, keys[i].length - 4)
+			var mydiv = document.getElementById("mySidenav");
+        	var aTag = document.createElement('a');
+        	aTag.setAttribute('onclick',"WindowTerminal(value)");
+        	aTag.innerText = key;
+        	mydiv.appendChild(aTag);
+		}
+    </script>
+  </div>
+  <span style="font-size:30px; position:absolute; right:2%;cursor:pointer" onclick="openNav()">&#9776; List of Instances</span>
+
+</head>
+<body>
+<!-- test size: 25x80 -->
+<pre id="dummy-screen" style="visibility:hidden; border: white solid 5px; font-family: &quot;DejaVu Sans Mono&quot;, &quot;Liberation Mono&quot;, monospace; font-size: 11px;">0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+0
+1
+2
+3
+
+<span id="dummy-screen-rows" style="visibility:hidden;">01234567890123456789012345678901234567890123456789012345678901234567890123456789</span>
+</pre>
+</body>
