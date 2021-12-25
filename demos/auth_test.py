@@ -62,7 +62,7 @@ class TerminalPageHandler(BaseHandler):
             print()
             return self.render("ex.html", static=self.static_url,
                            xstatic=self.application.settings['xstatic_url'],
-                           values=list(ws_pathes.values()), keys = list(ws_pathes.keys()), len = len(ws_pathes), itera = ws_pathes)
+                           values=list(ws_pathes.values()), keys = list(ws_pathes.keys()))
         else:
             ws_pathes[self.current_user.decode('UTF-8')] = "/_websocket/public/" + term_name
             print(ws_pathes)
