@@ -19,10 +19,11 @@
     font: 20px/1.5 sans-serif;
   }
 </style>
-<script src="{{ xstatic('termjs', 'term.js') }}"></script>
-<script src="{{ static('terminado.js') }}"></script>
-<script>
+<script src="{{ xstatic('termjs', 'term.js') }}" charset="utf-8"></script>
+<script src="{{ static('terminado.js') }}" charset="utf-8"></script>
+    <script>
 window.onload = function() {
+
     // Test size: 25x80
     var termRowHeight = 0.0 + 1.00*document.getElementById("dummy-screen").offsetHeight / 25;
     var termColWidth = 0.0 + (1.02*document.getElementById("dummy-screen-rows").offsetWidth / 80);
