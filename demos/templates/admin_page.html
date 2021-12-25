@@ -1,0 +1,167 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <title>Вкладки</title>
+  <style type="text/css">
+
+  body { margin:0px; padding:0px;  }
+  .menu { background:#7BB9FD; padding:5px; }
+  .text_site { padding:10px; }
+  /* свойства вкладок */
+  .block_inset { position:relative; height:30px; }
+  .inset_pole { overflow:hidden; width:100%; height:300px;
+    position:absolute; left:0px; top:0px; }
+  .inset_num { position:absolute; background:#80FFFF; width:800px; left:150px;
+     top:-120px; }
+  .inset_header { position:absolute; bottom:0px; left:0px; width:100%;
+    cursor:pointer; text-align:center; background:#00FF40; height:30px; }
+  .inset_header div { padding:5px; }
+  .inset_kontent { padding:10px;  height:120px; background:#408080; color:#eee; }
+
+  /* вкладки  */
+  #inset_num1 { height:10px; }
+  #inset_num2 { height:220px; }
+  #inset_num3 { height:430px; }
+
+  </style>
+</head>
+<body>
+<h1>Заголовок сайта</h1>
+<div class="menu">
+меню
+</div>
+<div class="block_inset">
+<div class="inset_pole" id="inset_pole1">
+
+<div class="inset_num" id="inset_num1">
+<div class="inset_kontent">Содержимое вкладки</div>
+<div class="inset_header" id="inset_header1" onClick="click_header_inset(1);" ><div>Вкладка</div></div>
+</div>
+
+<div class="inset_num" id="inset_num2">
+<div class="inset_kontent">
+Содержимое вкладки
+</div>
+<div class="inset_header" id="inset_header2" onClick="click_header_inset(2);" ><div>Вкладка</div></div>
+</div>
+
+<div class="inset_num" id="inset_num3">
+<div class="inset_kontent">
+Содержимое вкладки</div>
+<div class="inset_header" id="inset_header3" onClick="click_header_inset(3);" ><div>Вкладка</div></div>
+</div>
+
+</div>
+</div>
+
+<div class="text_site">
+Основной текст сайта
+</div>
+
+<script type="text/javascript">
+
+num_inset_motor=0;
+flag_inset_motor=0;
+time_pause_motor=0.3;//задержка между перемещениями в миллисекундах
+delta_y=50;//величина перемещения вкладки
+set_motor=false;
+id_settimeout=0;
+open_inset_num=0;
+next_open_num=0;
+height_header=30;//высота заголовка вкладки
+
+function click_header_inset(n_inset)
+  {
+
+   if (!set_motor)
+     {
+      next_open_num=0;
+      if (open_inset_num==0)
+        {
+         num_inset_motor=n_inset;
+         flag_inset_motor=1;
+         set_motor=true;
+         motor_inset();
+        }
+       else
+         {
+          if (n_inset!=open_inset_num) next_open_num=n_inset;
+          num_inset_motor=open_inset_num;
+          flag_inset_motor=-1;
+          set_motor=true;
+          motor_inset();
+
+         }
+     }
+    else
+      {
+       clearTimeout(id_settimeout);
+       if (n_inset==num_inset_motor)
+         {
+          flag_inset_motor*=-1;
+          motor_inset();
+         }
+        else
+          {
+           next_open_num=n_inset;
+           if (flag_inset_motor>0)
+             {
+              flag_inset_motor=-1;
+
+             }
+           motor_inset();
+          }
+      }
+  }
+
+function motor_inset()
+  {
+   if (num_inset_motor==0) return;
+   if (flag_inset_motor==0) return;
+   obj_name="inset_num"+num_inset_motor;
+   obj_inset=document.getElementById(obj_name);
+   y_inset_motor=obj_inset.offsetTop;
+
+   y_inset_motor+=flag_inset_motor*delta_y;
+
+   if (flag_inset_motor>0)
+     {
+      if (y_inset_motor>0)//вкладка отрыта
+        {
+         y_inset_motor=0;
+         set_motor=false;
+         open_inset_num=num_inset_motor;
+        }
+     }
+    else
+      {
+       if (y_inset_motor<=height_header-obj_inset.offsetHeight)//вкладка закрыта
+         {
+          y_inset_motor=height_header-obj_inset.offsetHeight;
+          set_motor=false;
+          open_inset_num=0;
+          if (next_open_num>0)
+            {
+
+             num_inset_motor=next_open_num;
+             next_open_num=0;
+             flag_inset_motor=1;
+             set_motor=true;
+
+            }
+         }
+
+      }
+   obj_inset.style.top=y_inset_motor+"px";
+
+   if (set_motor)
+    {
+     id_settimeout=setTimeout("motor_inset()",time_pause_motor);
+    }
+
+  }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,66 @@
+<html>
+	<head>
+		<title>Show-hide test</title>
+		<style>
+			.wrapper {
+				width: 100%;
+				height: 100%;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 50px;
+				flex-direction: column;
+			}
+			
+			.row-spacer {
+				display: inline-block;
+				width: 100%;
+				margin-top: 10px;
+			}
+					
+			.toggle-switch {
+				cursor: hand;
+				text-decoration: underline;
+			}
+			
+			.toggle-target {
+				height: 150px;
+				width: 150px;
+				border: 1px dashed gray;
+				display: none;
+			}
+			
+			.toggle-target.visible {
+				display: block;
+			}
+		</style>
+    <script>
+    $(function(){
+      $("#includedContent").load("auth.html");
+    });
+    </script>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="toggle-switch" id="toggle1sw">
+				Show / hide (click me)
+			</div>
+			
+			<div class="row-spacer"></div>
+			<div class="toggle-target" id="toggle1tgt">
+				qweqweqweqwe qweqweqweqwe<br/>
+				<b>QWEQWEQWEQWE QWE QWE QWE QWE</b><br/>
+				qweqweqweqwe qweqweqweqwe
+				<iframe src="./auth.html" title="W3Schools Free Online Web Tutorials"></iframe>
+			</div>
+
+		</div>
+		
+		<script>
+			document.getElementById("toggle1sw").addEventListener("click", function() {
+				let tgt = document.getElementById("toggle1tgt");
+				tgt.classList.toggle("visible");
+			});
+		</script>
+	</body>
+</html>

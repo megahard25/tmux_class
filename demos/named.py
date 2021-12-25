@@ -21,23 +21,23 @@ class TerminalPageHandler(tornado.web.RequestHandler):
     def get(self, term_name):
         return self.render("termpage.html", static=self.static_url,
                            xstatic=self.application.settings['xstatic_url'],
-                           ws_url_path="/_websocket/"+term_name)
+                           ws_url_path="/_websocket/public/"+term_name)
 
 class NewTerminalHandler(tornado.web.RequestHandler):
     """Redirect to an unused terminal name"""
     def get(self):
         name, terminal = self.application.settings['term_manager'].new_named_terminal()
-        self.redirect("/" + name, permanent=False)
+        self.redirect("/public/" + name, permanent=False)
 
 def main():
-    term_manager = NamedTermManager(shell_command=['bash'],
+    term_manager = NamedTermManager(shell_command=['tmux','-L', 'socket'],
                                      max_terminals=100)
-
+    print(term_manager)
     handlers = [
-                (r"/_websocket/(\w+)", TermSocket,
+                (r"/_websocket/public/(\w+)", TermSocket,
                      {'term_manager': term_manager}),
-                (r"/new/?", NewTerminalHandler),
-                (r"/(\w+)/?", TerminalPageHandler),
+                (r"/public/new/?", NewTerminalHandler),
+                (r"/public/(\w+)/?", TerminalPageHandler),
                 (r"/xstatic/(.*)", tornado_xstatic.XStaticFileHandler)
                ]
     application = tornado.web.Application(handlers, static_path=STATIC_DIR,
@@ -46,7 +46,7 @@ def main():
                               term_manager=term_manager)
 
     application.listen(8700, 'localhost')
-    run_and_show_browser("http://localhost:8700/new", term_manager)
+    run_and_show_browser("http://localhost:8700/public/new", term_manager)
 
 if __name__ == "__main__":
     main()
