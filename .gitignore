@@ -45,6 +45,9 @@ ORIG
 SUBMIT
 doc/_build/
 
+data/*
+.idea
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
