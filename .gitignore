@@ -46,6 +46,7 @@ SUBMIT
 doc/_build/
 
 data/*
+.idea
 
 
 # PyInstaller

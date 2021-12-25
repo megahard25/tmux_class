@@ -32,10 +32,6 @@ class MainHandler(BaseHandler):
 
 class LoginHandler(BaseHandler):
     def get(self):
-        # self.write('<html><body><form action="/login" method="post">'
-        #            'Name: <input type="text" name="name">'
-        #            '<input type="submit" value="Sign in">'
-        #            '</form></body></html>')
         if self.current_user:
             self.redirect("/public/new")
         else:
@@ -43,14 +39,12 @@ class LoginHandler(BaseHandler):
 
     def post(self):
         global DATABASE
-        if DATABASE.check_username(self.get_argument("uname")):
-            if DATABASE.check_username_password(self.get_argument("uname"), self.get_argument("psw")):
-                self.set_secure_cookie("user", self.get_argument("uname"), expires_days=None)
-                #self.redirect("/public/new")
-                DATABASE.save_remember(self.get_argument("uname"), self.get_argument("remember"))
-                if self.get_argument("remember") is None or not self.get_argument("remember"):
-                    print("HERE!")
-                    self.clear_cookie("user")
+        if DATABASE.check_username(self.get_argument("uname", default=None)):
+            if DATABASE.check_username_password(self.get_argument("uname", default=None), self.get_argument("psw", default=None)):
+                bool_remember = False if self.get_argument("remember", default=None) is None else True
+                exp_days = 1 if not bool_remember else None
+                self.set_secure_cookie("user", self.get_argument("uname", default=None), expires_days=exp_days)
+                DATABASE.save_remember(self.get_argument("uname", default=None), bool_remember)
                 self.redirect("/public/" + self.get_argument("uname"), permanent=False)
             else:
                 self.redirect("wrong_psw_auth.html")
@@ -107,6 +101,12 @@ class AdminPaneHandler(BaseHandler):
         else:
             self.render("auth.html", title="My title")
 
+class LogoutHandler(BaseHandler):
+    def get(self):
+        if self.current_user:
+            self.clear_cookie("user")
+        self.redirect("/login", permanent=False)
+
 
 def main():
     term_manager = NamedTermManager(shell_command=['bash'],
@@ -115,6 +115,7 @@ def main():
         (r"/", MainHandler),
         (r"/login", LoginHandler),
         (r"/admin", AdminPaneHandler),
+        (r"/logout", LogoutHandler),
         (r"/registration", RegistrationHandler),
         (r"/(auth.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
         (r"/(wrong_psw_auth.html)", tornado.web.StaticFileHandler, {'path': './templates'}),

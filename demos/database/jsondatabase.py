@@ -53,7 +53,8 @@ class JSONDatabase():
             self.data[username] = user_data
 
     def save_remember(self, username, remember):
-        self.set_user_data(username, 'remember', remember)
+        remember_bool = True if remember == 'on' else False
+        self.set_user_data(username, 'remember', remember_bool)
         self.push()
 
     def save_username_password(self, username, password):
