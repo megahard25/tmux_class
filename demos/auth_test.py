@@ -17,20 +17,23 @@ import tornado_xstatic
 from terminado import TermSocket, NamedTermManager
 from common_demo_stuff import run_and_show_browser, STATIC_DIR, TEMPLATE_DIR
 
-ws_pathes= {}
+ws_pathes = {}
+
 
 class BaseHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return self.get_secure_cookie("user")
 
+
 class MainHandler(BaseHandler):
     def get(self):
-        #self.clear_all_cookies()
+        # self.clear_all_cookies()
         if not self.current_user:
             self.redirect("/login")
             return
         name = tornado.escape.xhtml_escape(self.current_user)
         self.write("Hello, " + name)
+
 
 class LoginHandler(BaseHandler):
     def get(self):
@@ -39,51 +42,55 @@ class LoginHandler(BaseHandler):
         #            '<input type="submit" value="Sign in">'
         #            '</form></body></html>')
         if self.current_user:
-            self.redirect("/public/new")
+            self.redirect("/students/new")
         else:
             self.render("auth.html", title="My title")
 
     def post(self):
-        self.set_secure_cookie("user", self.get_argument("uname"), expires_days=None)
-        #self.redirect("/public/new")
+        self.set_secure_cookie(
+            "user", self.get_argument("uname"), expires_days=None)
+        # self.redirect("/students/new")
         if self.get_argument("uname") == 'admin':
             self.redirect("/" + self.get_argument("uname"), permanent=False)
         else:
-            self.redirect("/public/" + self.get_argument("uname"), permanent=False)
+            self.redirect(
+                "/students/" + self.get_argument("uname"), permanent=False)
+
 
 class TerminalPageHandler(BaseHandler):
     """Render the /ttyX pages"""
+
     def get(self, term_name):
         if not self.current_user:
             self.redirect("/login")
             return
 
         if self.current_user == b'admin':
-            print()
             return self.render("ex.html", static=self.static_url,
-                           xstatic=self.application.settings['xstatic_url'],
-                           values=list(ws_pathes.values()), keys = list(ws_pathes.keys()))
+                               xstatic=self.application.settings['xstatic_url'],
+                               values=list(ws_pathes.values()), keys=list(ws_pathes.keys()))
         else:
-            ws_pathes[self.current_user.decode('UTF-8')] = "/_websocket/public/" + term_name
-            print(ws_pathes)
+            ws_pathes[self.current_user.decode(
+                'UTF-8')] = "/_websocket/students/" + term_name
             return self.render("termpage.html", static=self.static_url,
-                           xstatic=self.application.settings['xstatic_url'],
-                           ws_url_path="/_websocket/public/"+term_name)
+                               xstatic=self.application.settings['xstatic_url'],
+                               ws_url_path="/_websocket/students/"+term_name)
+
 
 class NewTerminalHandler(BaseHandler):
     """Redirect to an unused terminal name"""
+
     def get(self):
-        print(self.current_user)
         if not self.current_user:
             self.redirect("/login")
             return
         if self.current_user == b'admin':
-            print("Hello")
-            #name, terminal = self.application.settings['term_manager'].new_named_terminal(name = 'admin')
             self.redirect("/" + 'admin', permanent=False)
         else:
-            name, terminal = self.application.settings['term_manager'].new_named_terminal()
-            self.redirect("/public/" + name, permanent=False)
+            name, terminal = self.application.settings['term_manager'].new_named_terminal(
+            )
+            self.redirect("/students/" + name, permanent=False)
+
 
 class AuthenticationPaneHandler(BaseHandler):
     def get(self):
@@ -106,19 +113,21 @@ def main():
         (r"/_websocket/(\S*)", TermSocket,
          {'term_manager': term_manager}),
         #(r"/new", NewTerminalHandler),
-        (r"/public/(\w+)/?|/admin", TerminalPageHandler),
-        
+        (r"/students/(\w+)/?|/admin", TerminalPageHandler),
+
         (r"/xstatic/(.*)", tornado_xstatic.XStaticFileHandler)
     ]
     application = tornado.web.Application(handlers, static_path=STATIC_DIR,
-                              template_path=TEMPLATE_DIR,
-                              xstatic_url=tornado_xstatic.url_maker('/xstatic/'),
-                              term_manager=term_manager, cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__")
+                                          template_path=TEMPLATE_DIR,
+                                          xstatic_url=tornado_xstatic.url_maker(
+                                              '/xstatic/'),
+                                          term_manager=term_manager, cookie_secret="__TODO:_GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__")
 
     application.listen(8700, 'localhost')
     # run_and_show_browser("http://localhost:8700/login", term_manager)
     run_and_show_browser("http://localhost:8700/authentication", term_manager)
-    # run_and_show_browser("http://localhost:8700/public/new", term_manager)
+    # run_and_show_browser("http://localhost:8700/students/new", term_manager)
+
 
 if __name__ == "__main__":
     main()
