@@ -33,9 +33,9 @@ class MainHandler(BaseHandler):
             return
         name = tornado.escape.xhtml_escape(self.current_user)
         if name == 'admin':
-            self.redirect("/admin")
+            self.redirect("/login")
         else:
-            self.redirect(f"/students/{name}")
+            self.redirect(f"/login")
         
 
 
@@ -45,10 +45,8 @@ class LoginHandler(BaseHandler):
         #            'Name: <input type="text" name="name">'
         #            '<input type="submit" value="Sign in">'
         #            '</form></body></html>')
-        if self.current_user:
-            self.redirect("/students/new")
-        else:
-            self.render("auth.html", title="My title")
+        self.clear_cookie("user")
+        self.render("auth.html", title="My title")
 
     def post(self):
         self.set_secure_cookie(
@@ -79,27 +77,6 @@ class TerminalPageHandler(BaseHandler):
             return self.render("termpage.html", static=self.static_url,
                                xstatic=self.application.settings['xstatic_url'],
                                ws_url_path="/_websocket/students/"+term_name)
-
-
-class NewTerminalHandler(BaseHandler):
-    """Redirect to an unused terminal name"""
-
-    def get(self):
-        if not self.current_user:
-            self.redirect("/login")
-            return
-        if self.current_user == b'admin':
-            self.redirect("/" + 'admin', permanent=False)
-        else:
-            name, terminal = self.application.settings['term_manager'].new_named_terminal(
-            )
-            self.redirect("/students/" + name, permanent=False)
-
-
-class AuthenticationPaneHandler(BaseHandler):
-    def get(self):
-        self.clear_cookie("user")
-        self.render("auth.html", title="My title")
 
 
 def main():
