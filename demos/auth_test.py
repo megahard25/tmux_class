@@ -8,13 +8,27 @@ import tornado.web
 # This demo requires tornado_xstatic and XStatic-term.js
 import tornado_xstatic
 from database import JSONDatabase
+import argparse
+import pathlib
 
+import terminado
 from terminado import TermSocket, NamedTermManager
 from common_demo_stuff import run_and_show_browser, STATIC_DIR, TEMPLATE_DIR
 
 
-path_to_json_file = "/mnt/c/Users/anton/programming/nets_arch/terminado/data/database.json"
-DATABASE = JSONDatabase(path_to_json_file)
+parser = argparse.ArgumentParser(description="Tmux class")
+parser.add_argument("-p", "--password", dest="admin_password", required=True, type=str,
+                    help="Password for user 'admin' to access admin pane")
+parser.add_argument("-d", "--database", dest="db_json_path", default=None, type=str,
+                    help="Path to json file, where will be info about usernanes and passwords. Default: data dir in project folder")
+args = parser.parse_args()
+if args.db_json_path is None:
+    path_to_db = pathlib.Path(terminado.__file__).parents[2] / 'data' / 'database.json'
+else:
+    path_to_db = pathlib.Path(args.db_json_path)
+
+DATABASE = JSONDatabase(path_to_db)
+DATABASE.save_username_password("admin", args.admin_password)
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -23,17 +37,23 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     def get(self):
-        #self.clear_all_cookies()
         if not self.current_user:
             self.redirect("/login")
             return
         name = tornado.escape.xhtml_escape(self.current_user)
-        self.write("Hello, " + name)
+        if name == 'admin':
+            self.redirect("/admin")
+        else:
+            self.redirect(f"/students/{name}")
 
 class LoginHandler(BaseHandler):
     def get(self):
         if self.current_user:
-            self.redirect("/public/new")
+            username = tornado.escape.xhtml_escape(self.current_user)
+            if username == "admin":
+                self.redirect("/admin")
+            else:
+                self.redirect(f"/students/{username}")
         else:
             self.render("auth.html", title="My title")
 
@@ -45,7 +65,7 @@ class LoginHandler(BaseHandler):
                 exp_days = 1 if not bool_remember else None
                 self.set_secure_cookie("user", self.get_argument("uname", default=None), expires_days=exp_days)
                 DATABASE.save_remember(self.get_argument("uname", default=None), bool_remember)
-                self.redirect("/public/" + self.get_argument("uname"), permanent=False)
+                self.redirect("/students/" + self.get_argument("uname"), permanent=False)
             else:
                 self.redirect("wrong_psw_auth.html")
         else:
@@ -54,7 +74,7 @@ class LoginHandler(BaseHandler):
 class RegistrationHandler(BaseHandler):
     def get(self):
         if self.current_user:
-            self.redirect("/public/new")
+            self.redirect("/login")
         else:
             self.render("registration.html", title="Registration form")
 
@@ -76,30 +96,47 @@ class TerminalPageHandler(BaseHandler):
         if not self.current_user:
             self.redirect("/login")
             return
+        term_name = self.get_secure_cookie("user").decode("utf-8")
         return self.render("termpage.html", static=self.static_url,
                            xstatic=self.application.settings['xstatic_url'],
                            ws_url_path="/_websocket/public/"+term_name)
 
 class NewTerminalHandler(BaseHandler):
     """Redirect to an unused terminal name"""
-    def get(self):
+    def get(self, term_name=None):
         if not self.current_user:
             self.redirect("/login")
             return
-        name, terminal = self.application.settings['term_manager'].new_named_terminal()
-        self.redirect("/public/" + name, permanent=False)
+        username = self.get_secure_cookie("user").decode("utf-8")
+        #name, terminal = self.application.settings['term_manager'].new_named_terminal(shell_command=['tmux', 'new-session', '-A', '-s', username])
+        self.redirect("/public/" + username, permanent=False)
 
 class AdminPaneHandler(BaseHandler):
     def get(self):
         if self.current_user:
-            name, terminal = self.application.settings['term_manager'].new_named_terminal()
-            # term_name = "/public/" + name
-            self.redirect("/public/" + name, permanent=False)
+            username = tornado.escape.xhtml_escape(self.current_user)
+            if username != "admin":
+                self.redirect("/access_error.html")
+            name, terminal = self.application.settings['term_manager'].new_named_terminal(shell_command=['tmux','new-session', '-A', '-s', username])
+            self.redirect("/students/" + username, permanent=False)
             # self.render("auth.html", static=self.static_url,
             #                xstatic=self.application.settings['xstatic_url'],
             #                ws_url_path=r"/_websocket/(\w+)")
         else:
-            self.render("auth.html", title="My title")
+            self.redirect("/login")
+
+class StudentPaneHandler(BaseHandler):
+    def get(self, term_name):
+        if self.current_user:
+            username = tornado.escape.xhtml_escape(self.current_user)
+            if username != term_name:
+                self.redirect("/access_error.html")
+            name, terminal = self.application.settings['term_manager'].new_named_terminal(name=username, shell_command=['tmux','new-session', '-A', '-s', username])
+            self.render("termpage.html", static=self.static_url,
+                        xstatic=self.application.settings['xstatic_url'],
+                        ws_url_path="/_websocket/students/" + name)
+        else:
+            self.redirect("/login")
 
 class LogoutHandler(BaseHandler):
     def get(self):
@@ -109,8 +146,7 @@ class LogoutHandler(BaseHandler):
 
 
 def main():
-    term_manager = NamedTermManager(shell_command=['bash'],
-                                    max_terminals=100)
+    term_manager = NamedTermManager(shell_command=['tmux','new-session', '-A', '-s', 'main'], max_terminals=100)
     handlers = [
         (r"/", MainHandler),
         (r"/login", LoginHandler),
@@ -128,9 +164,10 @@ def main():
         # (r"/(uimod.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
         #(r"/(term.js)", tornado.web.StaticFileHandler, {'path': './xstatic/pkg/termjs/data'}),
         #(r"/(terminado.js)", tornado.web.StaticFileHandler, {'path': './terminado/_static'}),
-        (r"/_websocket/public/(\w+)", TermSocket, {'term_manager': term_manager}),
-        (r"/public/new/?", NewTerminalHandler),
-        (r"/public/(\w+)/?", TerminalPageHandler),
+        (r"/_websocket/students/(\w+)", TermSocket, {'term_manager': term_manager}),
+        #(r"/public/new/?", NewTerminalHandler),
+        (r"/students/(\w+)/?", StudentPaneHandler),
+        #(r"/public/(\w+)/?", NewTerminalHandler),
         (r"/xstatic/(.*)", tornado_xstatic.XStaticFileHandler)
     ]
     application = tornado.web.Application(handlers, static_path=STATIC_DIR,
@@ -140,8 +177,10 @@ def main():
 
     application.listen(8700, 'localhost')
     # run_and_show_browser("http://localhost:8700/login", term_manager)
-    run_and_show_browser("http://localhost:8700/admin", term_manager)
+    run_and_show_browser("http://localhost:8700/", term_manager)
     # run_and_show_browser("http://localhost:8700/public/new", term_manager)
+
+
 
 if __name__ == "__main__":
     main()
