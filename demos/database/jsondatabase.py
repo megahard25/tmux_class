@@ -21,6 +21,8 @@ class JSONDatabase():
         self.data = self.get_data()
 
     def push(self):
+        if not os.path.exists(os.path.dirname(self.path_to_json_file)):
+            os.makedirs(os.path.dirname(self.path_to_json_file), exist_ok=True)
         with open(self.path_to_json_file, "w") as write_file:
             json.dump(self.data, write_file)
 
