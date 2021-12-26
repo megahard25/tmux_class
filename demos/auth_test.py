@@ -32,7 +32,11 @@ class MainHandler(BaseHandler):
             self.redirect("/login")
             return
         name = tornado.escape.xhtml_escape(self.current_user)
-        self.write("Hello, " + name)
+        if name == 'admin':
+            self.redirect("/admin")
+        else:
+            self.redirect(f"/students/{name}")
+        
 
 
 class LoginHandler(BaseHandler):
@@ -104,7 +108,6 @@ def main():
     handlers = [
         (r"/", MainHandler),
         (r"/login", LoginHandler),
-        (r"/authentication", AuthenticationPaneHandler),
         # (r"/(index.png)", tornado.web.StaticFileHandler, {'path': './templates'}),
         # (r"/(termpage.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
         # (r"/(uimod.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
@@ -125,7 +128,7 @@ def main():
 
     application.listen(8700, 'localhost')
     # run_and_show_browser("http://localhost:8700/login", term_manager)
-    run_and_show_browser("http://localhost:8700/authentication", term_manager)
+    run_and_show_browser("http://localhost:8700/", term_manager)
     # run_and_show_browser("http://localhost:8700/students/new", term_manager)
 
 
