@@ -14,7 +14,7 @@ class TerminalPageHandler(tornado.web.RequestHandler):
                            ws_url_path="/websocket")
 
 def main(argv):
-    term_manager = UniqueTermManager(shell_command=['bash'])
+    term_manager = UniqueTermManager(shell_command=['tmux'])
     handlers = [
                 (r"/websocket", TermSocket,
                      {'term_manager': term_manager}),
