@@ -37,15 +37,24 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class MainHandler(BaseHandler):
     def get(self):
-        self.redirect("/login")
-
+        # self.clear_all_cookies()
+        if not self.current_user:
+            self.redirect("/login")
+            return
+        name = tornado.escape.xhtml_escape(self.current_user)
+        if name == 'admin':
+            self.redirect("/login")
+        else:
+            self.redirect(f"/login")
 
 class LoginHandler(BaseHandler):
     def get(self):
-        if not self.current_user:
-            self.render("auth.html", title="Login form")
-            return
-        self.redirect("/admin")
+        # self.write('<html><body><form action="/login" method="post">'
+        #            'Name: <input type="text" name="name">'
+        #            '<input type="submit" value="Sign in">'
+        #            '</form></body></html>')
+        self.clear_cookie("user")
+        self.render("auth.html", title="My title")
 
     def post(self):
         global DATABASE
@@ -93,19 +102,17 @@ class PageHandler(BaseHandler):
         if not self.current_user:
             self.redirect("/login")
             return
-        username = self.current_user.decode('UTF-8')
-        if username == 'admin':
+
+        if self.current_user == b'admin':
             return self.render("ex.html", static=self.static_url,
                                xstatic=self.application.settings['xstatic_url'],
                                values=list(ws_pathes.values()), keys=list(ws_pathes.keys()))
         else:
-            term_name, terminal = self.application\
-                .settings['term_manager']\
-                .new_named_terminal(name=username, shell_command=['tmux', 'new-session', '-A', '-s', username])
-            ws_pathes[username] = "/_websocket/students/" + term_name
+            ws_pathes[self.current_user.decode(
+                'UTF-8')] = "/_websocket/students/" + term_name
             return self.render("termpage.html", static=self.static_url,
                                xstatic=self.application.settings['xstatic_url'],
-                               ws_url_path="/_websocket/students/" + term_name)
+                               ws_url_path="/_websocket/students/"+term_name)
 
 def main():
     term_manager = NamedTermManager(shell_command=['tmux','new-session', '-A', '-s', 'main'], max_terminals=100)
@@ -122,7 +129,6 @@ def main():
         (r"/(registration_no_password.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
         (r"/(avatar.png)", tornado.web.StaticFileHandler, {'path': './templates'}),
         (r"/_websocket/(\S*)", TermSocket, {'term_manager': term_manager}),
-        #(r"/_websocket/students/(\w+)", TermSocket, {'term_manager': term_manager}),
         (r"/students/(\w+)/?|/admin", PageHandler),
         (r"/xstatic/(.*)", tornado_xstatic.XStaticFileHandler)
     ]
