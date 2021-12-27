@@ -15,6 +15,6 @@ $ pip install -r requirements.txt
 Quick Start
 ---------
 On command line, type in the following command:
-
-	$ cd tmux_class/demos
-        python3 auth_test -p <admin_password>         
+ 
+        $ cd tmux_class/demos               
+        python3 auth_test -p <admin_password>                  
