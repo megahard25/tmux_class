@@ -17,4 +17,4 @@ Quick Start
 On command line, type in the following command:
 
 	$ cd tmux_class/demos
-        $ python3 auth_test -p <admin_password>         
+        python3 auth_test -p <admin_password>         
