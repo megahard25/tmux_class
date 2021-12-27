@@ -121,7 +121,7 @@ def main():
         (r"/(registration_user_exists.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
         (r"/(registration_no_password.html)", tornado.web.StaticFileHandler, {'path': './templates'}),
         (r"/(avatar.png)", tornado.web.StaticFileHandler, {'path': './templates'}),
-        (r"/_websocket/(\S*)", TermSocket, {'term_manager': term_manager}),
+        (r"/_websocket/students/(\w+)", TermSocket, {'term_manager': term_manager}),
         #(r"/_websocket/students/(\w+)", TermSocket, {'term_manager': term_manager}),
         (r"/students/(\w+)/?|/admin", PageHandler),
         (r"/xstatic/(.*)", tornado_xstatic.XStaticFileHandler)

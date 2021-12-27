@@ -1,26 +1,48 @@
 # tmux_class
 Проект по курсу "Архитектура компьютерных сетей". МФТИ 2021
-
+Выполнили:  
+Антон Кувалдин М05-014в  
 =====
 
 Requirements
 ------------
 
-Install requirements in demos folder:
+Установка зависимостей из папки demos:
 
 ```sh
 $ pip install -r requirements.txt
 ```
+About project
+---------
+Проект представляет собой помощник для преподавателя по курсу программирования.
+Студентам предоставляется выделенный терминал, в котором они могут выполнять задания
+независимо друг от друга(tmux сессия). У преподавателя есть возможность подключиться к терминалу
+любого студента и посмотреть его работу.  
+Доступ к терминалам и мониторинг текущих сессий остуществляется через веб-бразуер, что позволяет 
+вести работу без выполнения сторонних комманд и погружения в не относящуюся к теме курса область.
+
 
 Quick Start
 ---------
-On command line, type in the following command:
+Для начала работы необходимо запустить веб-сервер:
  
         $ cd tmux_class/demos               
-        python3 auth_test -p <admin_password>       
+        $ python3 main.py -p <admin_password>       
+<admin_password> - это пароль от учетной записи администратора(преподавателя, который мониторит сессии студентов)  
 
-After web-server start you can access it with the following URL:
-
+После старта программы, доступ к веб интерфейсу осуществляется по пути:
         http://hostname:8700/login
+   
+Студентам необходимо пройти короткую регистрацию, после чего у них будет открыт терминал в браузере:
+![Login form example](demos/images/login_form.jpg "Login form example")  
+![Registration form example](demos/images/registration_form.jpg "Registration form example")  
+![Students terminal example](demos/images/student_term_ex.jpg "Students terminal example")  
 
-	       
+Преподаватель заходит в свою учетную запись с логином **admin** и паролем, указанным при старте сервера.  
+Список всех текущих tmux сессий можно увидеть при нажатии на **List of Instances**  
+![Students terminal example](demos/images/admin_page.jpg "Students terminal example")  
+
+При нажатии на имя сессии, преподаватель переходит в терминал студента
+
+
+
