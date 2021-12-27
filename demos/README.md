@@ -1,31 +1,20 @@
-Demos
+# tmux_class
+Проект по курсу "Архитектура компьютерных сетей". МФТИ 2021
+
 =====
 
-requirements
+Requirements
 ------------
 
-Install requirements to run these demos:
+Install requirements in demos folder:
 
 ```sh
 $ pip install -r requirements.txt
 ```
 
-named.py:
+Quick Start
 ---------
+On command line, type in the following command:
 
-One shared terminal per URL endpoint
-
-Plus a /new URL which will create a new terminal and redirect to it.
-
-
-single.py:
-----------
-
-A single common terminal for all websockets.
-
-
-unique.py:
-----------
-
-A separate terminal for every websocket opened.
-
+	$ cd tmux_class/demos
+        $ python3 auth_test -p <admin_password>         
